@@ -1,0 +1,510 @@
+/******************************************************************************/
+	Xylon logiCVC DRM Driver User Manual
+
+	(C) Xylon d.o.o. 2020.
+	e-mail: support@logicbricks.com
+
+	Last update: 23.01.2020.
+/******************************************************************************/
+
+
+Xylon DRM driver
+================
+Xylon DRM driver is Linux kernel driver which supports Xylon logiCVC-ML
+FPGA IP core. The logiCVC-ML is Compact Video Controller with Multilayer support
+optimized for Xilinx FPGA.
+
+Driver supports:
+-   TBD
+Miscellaneous:
+-	Interfacing the ADV7511 HDMI transmitter V4L2 driver to retrieve EDID
+	parameters and initialize the logiCVC-ML display controller IP core
+	accordingly to the preferred display resolution.
+
+
+Xylon DRM driver
+================
+
+TBD.
+
+
+Xylon DRM driver file structure
+===============================
+Driver source files are located in Linux kernel folder
+drivers/gpu/drm/xylon
+
+
+Xylon DRM driver configuration
+==============================
+In Linux kernel configuration menu position to:
+Device Drivers -> Graphics support
+   Select "Xylon DRM"
+Read help menu for details.
+
+Xylon DRM driver depends on Linux kernel Open Firmware support.
+
+Pixel clock source depends on FPGA design where logiCVC pixel clock input can be
+connected to logiCLK IP core, to Si570 clock generator (ZC70x boards), or some
+external clock source.
+
+Xylon DRM driver miscellaneous support is designed to enable logiCVC usage of
+board or FPGA hardware devices for achieving more complex functionality, except
+basic display/monitor driving.
+
+
+Xylon DRM driver properties
+===========================
+Required properties:
+ - compatible
+ - device
+ - device: the phandle for logiCVC video controller device
+ - encoder: the phandle for the video encoder
+ - primary-plane: logiCVC layer ID used for DRM driver primary plane
+
+Optional properties:
+ - none
+
+Note: for more information check xylon_drm.txt
+
+
+Xylon logiCVC IP core properties
+================================
+Required properties:
+ - compatible
+ - reg
+ - interrupts-parent
+ - interrupts
+ - pixel-stride
+ - layer_N
+ - bits-per-pixel
+ - type
+ - transparency
+
+Optional properties:
+ - background-layer-bits-per-pixel
+ - background-layer-type
+ - hsync-active-low
+ - vsync-active-low
+ - pixel-data-invert
+ - pixel-data-output-trigger-high
+ - readable-regs
+ - size-position
+ - component-swap
+ - data-enable-active-low
+ - display-interface-itu656
+ - address
+ - buffer-offset
+ - power-delay
+ - signal-delay
+
+Note: for more information check logicvc.txt
+
+
+Xylon DRM driver miscellaneous properties (ADV7511)
+===================================================
+Required properties:
+ - compatible
+ - reg
+ - interrupts
+ - interrupts-parent
+ - dma-request
+ - edid-addr
+ - video-input
+   - input-id
+   - input-style
+   - input-color-depth
+   - bit-justification
+   - hsync-polarity
+   - vsync-polarity
+   - clock-delay
+ - video-output
+   - hdmi-mode
+   - output-format
+   - output-color-space
+   - up-conversion
+   - csc-enable
+   - csc-scaling-factor
+   - csc-coefficients
+
+Note: for more information check xylonfb_adv7511.txt
+
+
+Xylon DRM driver parameters
+===========================
+List of DTS parameters, which describes Xylon DRM driver:
+
+compatible = "xylon,drm-1.00.a";
+clocks = <&si570>;
+device = <&logicvc_0>;
+encoder = <&adv7511>;
+primary-plane = <0>;
+
+
+Xylon logiCVC IP core parameters used by Xylon FB driver
+========================================================
+List of DTS parameters, which describes logiCVC configuration:
+
+compatible = "xylon,logicvc-5.00.a";
+reg = <0x40030000 0x6000>;
+interrupt-parent = <&intc>;
+interrupts = <0 58 4>;
+background-layer-bits-per-pixel = <32>;
+background-layer-type = "rgb";
+hsync-active-low;
+vsync-active-low;
+readable-regs;
+size-position;
+pixel-stride = <2048>;
+layer_0 {
+	address = <0x338F4000>;
+	buffer-offset = <1080>;
+	bits-per-pixel = <32>;
+	type = "rgb";
+	transparency = "pixel";
+};
+layer_1 {
+	address = <0x31FA4000>;
+	buffer-offset = <1080>;
+	bits-per-pixel = <32>;
+	type = "rgb";
+	transparency = "layer";
+};
+layer_2 {
+	address = <0x30000000>;
+	buffer-offset = <1080>;
+	bits-per-pixel = <32>;
+	type = "rgb";
+	transparency = "layer";
+};
+layer_3 {
+	address = <0x31950000>;
+	buffer-offset = <1080>;
+	bits-per-pixel = <8>;
+	type = "rgb";
+	transparency = "clut32";
+};
+
+
+Xylon DRM driver miscellaneous parameters (ADV7511)
+===================================================
+List of DTS parameters, which describes ADV7511 configuration:
+
+compatible = "adv7511";
+reg = <0x39>;
+interrupts = <0 59 4>;
+interrupt-parent = <&intc>;
+dma-request = <&logicvc_0>;
+edid-addr = <0x50>;
+video-input {
+	input-id = <1>;
+	input-style = <2>;
+	input-color-depth = <8>;
+	bit-justification = <1>;
+	hsync-polarity = <0>;
+	vsync-polarity = <0>;
+	clock-delay = <3>;
+};
+video-output {
+	hdmi-mode = <0>;
+	output-format = <0>;
+	output-color-space = <0>;
+	up-conversion = <0>;
+	csc-enable = <1>;
+	csc-scaling-factor = <2>;
+	csc-coefficients {
+		a1 = <0x0B37>;
+		a2 = <0x0800>;
+		a3 = <0x0000>;
+		a4 = <0x1A86>;
+		b1 = <0x1A49>;
+		b2 = <0x0800>;
+		b3 = <0x1D3F>;
+		b4 = <0x0422>;
+		c1 = <0x0000>;
+		c2 = <0x0800>;
+		c3 = <0x0E2D>;
+		c4 = <0x1914>;
+	};
+};
+
+
+Xylon logiCVC IP specific parameters description
+================================================
+"background-layer-bits-per-pixel"
+    background layer bits per pixel (8, 16, 32)
+"background-layer-type"
+    background layer type (rgb, yuv)
+"display-interface-itu656"
+    modifies rgb to yuv conversion coefficients
+"hsync-active-low"
+    horizontal synchronization pulse is active low "L"
+"vsync-active-low;"
+    vertical synchronization pulse is active low "L"
+"data-enable-active-low"
+    data enable signal is active low "L"
+"pixel-data-invert"
+    output pixel data polarity is inverted
+"pixel-data-output-trigger-high"
+    output pixel data triggers on rising edge
+"readable-regs"
+    all logiCVC registers are available for reading
+"size-position"
+    logiCVC functionality for controlling on screen layer size
+    and position is available
+"pixel-stride"
+    layer width in pixels
+"power-delay"
+    delay in ms after enabling VDD
+"signal-delay"
+    delay in ms after enabling display control and data signals
+    in parallel and LVDS interface
+
+"layer_N"
+    layer has its own configuration described with below properties
+    where N is layer ID in range 0 - 4
+"address"
+    layer video memory address or/and memory range for layer_N where N is
+    layer ID in range 0 - 4
+"buffer-offset"
+    buffer address offset represented in number of lines
+"bits-per-pixel"
+    number of bits per pixel on layer (8, 16, 32)
+"type"
+    layer type (rgb, yuv, alpha)
+"transparency"
+    layer transparency (clut16, clut32, layer, pixel)
+"component-swap"
+    swap the order of colour components inside the pixel
+
+
+Xylon DRM driver miscellaneous parameters (ADV7511) description
+===============================================================
+"edid-addr"
+    the I2C address for EDID memory
+
+"video-input"
+    video input has its own configuration described with below properties
+"input-id"
+    input video format and sync selection (0 - 8)
+"input-style"
+    input pin assignments (0 - 3)
+"input-color-depth"
+    color depth in bits for input video data (12, 10, 8)
+"bit-justification"
+    bit justfication for YUV 4:2:2 modes (0 - 3)
+"hsync-polarity"
+    horisontal synchronization pulse polarity for embedded syncdecoder
+    and sync adjustment
+"vsync-polarity"
+    vertical synchronization pulse polarity for embedded syncdecoder
+    and sync adjustment
+"clock-delay"
+    programmable delay for input video clock
+    Default is 0 for no delay.
+
+"video-output"
+    video output has its own configuration described with below properties
+"hdmi-mode"
+    HDMI or DVI selection
+"output-format"
+    output video format (4:4:4, 4:2:2)
+"output-color-space"
+    output color space selection (RGB, YUV)
+"up-conversion"
+    4:2:2 to 4:4:4 up conversion method selection of zero
+    or first order interpolation
+"csc-enable"
+    color space converter enabled
+"csc-scaling-factor"
+    color space converter mode
+    Sets the fixed point position of the CSC coefficients.
+"csc-coefficients"
+    coefficient values for all CSC channels
+
+
+Xylon DRM resolution setting description
+========================================
+TBD.
+
+
+Xylon DRM driver build procedure for Xilinx ARM Linux kernel
+============================================================
+Position on host computer to kernel root folder:
+Run configuration menu:
+make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- menuconfig
+Follow steps from chapter „Xylon DRM driver configuration“.
+Build complete kernel:
+make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi-
+Build uImage:
+make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi- UIMAGE_LOADADDR=0x8000 \
+uImage
+
+After building the kernel, install kernel modules into RAM filesystem by running
+following commands:
+sudo mkdir /mnt/ramdisk
+gunzip ramdisk8M.image.gz
+sudo mount ramdisk8M.image /mnt/ramdisk/
+sudo rm -r /mnt/ramdisk/lib/modules/
+sudo make ARCH=arm CROSS_COMPILE=arm-none-linux-gnueabi-
+INSTALL_MOD_PATH=/mnt/ramdisk modules_install
+sudo umount /mnt/ramdisk
+gzip -9 ramdisk8M.image
+
+Creating DTB file:
+Place devicetree.dts into kernel root folder
+scripts/dtc/dtc -I dts -O dtb -o devicetree.dtb devicetree.dts
+
+Copy following images to root of SD card relative to kernel root folder:
+- arch/arm/boot/uImage
+- uramdisk8M.image.gz
+- devicetree.dtb
+
+
+Xylon DRM test application
+==========================
+TBD.
+
+XylonDRM DTS snippet (add to devicetree.dts file):
+==================================================
+
+logicvc_0: logicvc@40030000 {
+	compatible = "xylon,logicvc-5.00.a";
+	reg = <0x40030000 0x6000>;
+	interrupt-parent = <&intc>;
+	interrupts = <0 58 4>;
+	background-layer-bits-per-pixel = <32>;
+	background-layer-type = "rgb";
+	hsync-active-low;
+	vsync-active-low;
+	readable-regs;
+	size-position;
+	pixel-stride = <2048>;
+	layer_0 {
+		address = <0x338F4000>;
+		buffer-offset = <1080>;
+		bits-per-pixel = <32>;
+		type = "rgb";
+		transparency = "pixel";
+	};
+	layer_1 {
+		address = <0x31FA4000>;
+		buffer-offset = <1080>;
+		bits-per-pixel = <32>;
+		type = "rgb";
+		transparency = "layer";
+	};
+	layer_2 {
+		address = <0x30000000>;
+		buffer-offset = <1080>;
+		bits-per-pixel = <32>;
+		type = "rgb";
+		transparency = "layer";
+	};
+	layer_3 {
+		address = <0x31950000>;
+		buffer-offset = <1080>;
+		bits-per-pixel = <8>;
+		type = "rgb";
+		transparency = "clut32";
+	};
+
+	display-timings {
+		native-mode = <&hd1080p>;
+		hd720p: 1280x720 {
+			clock-frequency = <74250000>;
+			hactive = <1280>;
+			vactive = <720>;
+			hfront-porch = <110>;
+			hback-porch = <220>;
+			hsync-len = <40>;
+			vfront-porch = <5>;
+			vback-porch = <20>;
+			vsync-len = <5>;
+			hsync-active = <0>;
+			vsync-active = <0>;
+			de-active = <1>;
+			pixelclk-active = <1>;
+		};
+		wsxga: 1680x1050 {
+			clock-frequency = <119000000>;
+			hactive = <1680>;
+			vactive = <1050>;
+			hfront-porch = <48>;
+			hback-porch = <80>;
+			hsync-len = <32>;
+			vfront-porch = <3>;
+			vback-porch = <21>;
+			vsync-len = <6>;
+		};
+		hd1080p: 1920x1080 {
+			clock-frequency = <148500000>;
+			hactive = <1920>;
+			vactive = <1080>;
+			hfront-porch = <88>;
+			hback-porch = <148>;
+			hsync-len = <44>;
+			vfront-porch = <4>;
+			vback-porch = <36>;
+			vsync-len = <5>;
+		};
+		TM050RBH01: 800x480 {
+			clock-frequency = <30000000>;
+			hactive = <800>;
+			vactive = <480>;
+			hfront-porch = <40>;
+			hback-porch = <40>;
+			hsync-len = <48>;
+			vfront-porch = <13>;
+			vback-porch = <29>;
+			vsync-len = <3>;
+		};
+	};
+};
+
+xylon_drm {
+		compatible = "xylon,drm-1.00.a";
+		clocks = <&si570>;
+		device = <&logicvc_0>;
+		encoder = <&adv7511>;
+		primary-plane = <0>;
+	};
+
+adv7511: adv7511@39 {
+	compatible = "adv7511";
+	reg = <0x39>;
+	interrupts = <0 59 4>;
+	interrupt-parent = <&intc>;
+	dma-request = <&logicvc_0>;
+	edid-addr = <0x50>;
+	video-input {
+		input-id = <1>;
+		input-style = <2>;
+		input-color-depth = <8>;
+		bit-justification = <1>;
+		hsync-polarity = <0>;
+		vsync-polarity = <0>;
+		clock-delay = <3>;
+	};
+	video-output {
+		hdmi-mode = <0>;
+		output-format = <0>;
+		output-color-space = <0>;
+		up-conversion = <0>;
+		csc-enable = <1>;
+		csc-scaling-factor = <2>;
+		csc-coefficients {
+			a1 = <0x0B37>;
+			a2 = <0x0800>;
+			a3 = <0x0000>;
+			a4 = <0x1A86>;
+			b1 = <0x1A49>;
+			b2 = <0x0800>;
+			b3 = <0x1D3F>;
+			b4 = <0x0422>;
+			c1 = <0x0000>;
+			c2 = <0x0800>;
+			c3 = <0x0E2D>;
+			c4 = <0x1914>;
+		};
+	};
+};
